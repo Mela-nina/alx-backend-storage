@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The MongoDB Operations with Python using pymongo
+"""The Log stats
 """
 
 
@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 
 def log_stats():
-    """This provides some stats about Nginx logs stored in MongoDB
+    """The log_stats
     """
     client = MongoClient('mongodb://127.0.0.1:27017')
     logs_collection = client.logs.nginx
