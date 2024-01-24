@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
-"""The web cache module"""
+"""The web cache and module"""
 
-import redis
 import requests
-from typing import Callable
+import redis
 from functools import wraps
 
-redis = redis.Redis()
+store = redis.Redis()
 
 
-def wrap_requests(fn: Callable) -> Callable:
-    """The cache decorator to store function results in Redis"""
-
-    @wraps(fn)
+def count_url_access(method):
+    """The decorator counting how many times a URL is accessed"""
+    @wraps(method)
     def wrapper(url):
-        """The wrapper for decorator"""
-        redis.incr(f"count:{url}")
-        cached_response = redis.get(f"cached:{url}")
-        if cached_response:
-            return cached_response.decode('utf-8')
-        result = fn(url)
-        redis.setex(f"cached:{url}", 10, result)
-        return result
+        cached_key = "cached:" + url
+        cached_data = store.get(cached_key)
+        if cached_data:
+            return cached_data.decode("utf-8")
 
+        count_key = "count:" + url
+        html = method(url)
+
+        store.incr(count_key)
+        store.set(cached_key, html)
+        store.expire(cached_key, 10)
+        return html
     return wrapper
 
 
-@wrap_requests
+@count_url_access
 def get_page(url: str) -> str:
-    """This fetches HTML content of given URL and caches the result
-    """
-    response = requests.get(url)
-    return response.text
+    """This gets page self descriptive"""
+    res = requests.get(url)
+    return res.text
